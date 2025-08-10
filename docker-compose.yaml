@@ -1,0 +1,74 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  mongodb:
+    image: mongo:8.0.12
+    container_name: mongodb
+    restart: always
+    ports:
+      -  "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: verysecurepassword123
+    volumes:
+      - mongo-data:/data/db:z
+      - mongo-config:/data/configdb:z
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  receive:
+    container_name: receive
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    build: 
+      context: ./receive
+      target: dev
+    environment:
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./receive/src:/usr/src/app/src:z
+
+  store:
+    container_name: store
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    build: 
+      context: ./store
+      target: dev
+    environment:
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./store/src:/usr/src/app/src:z
+
+volumes:
+  mongo-data:
+    driver: local
+  mongo-config:
+    driver: local
