@@ -1,3 +1,10 @@
+x-rabbitmq-variables: &rabbitmq-variables # Variaveis que serão usadas pelos dois servicos. Devem coincidir com a configuracao do rabbitmq.
+  RABBITMQ_USERNAME: username
+  RABBITMQ_PASSWORD: password
+  RABBITMQ_URI: localhost
+  RABBITMQ_PORT: 5672
+  RABBITMQ_QUEUE_NAME: queue
+
 services:
   rabbitmq:
     image: rabbitmq:4-management
@@ -7,8 +14,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: user # configurar usuario
+      RABBITMQ_DEFAULT_PASS: pass # configurar senha
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
@@ -22,8 +29,8 @@ services:
     ports:
       -  "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: verysecurepassword123
+      MONGO_INITDB_ROOT_USERNAME: user # configurar usuario
+      MONGO_INITDB_ROOT_PASSWORD: pass # configurar senha
     volumes:
       - mongo-data:/data/db:z
       - mongo-config:/data/configdb:z
@@ -42,13 +49,12 @@ services:
         condition: service_healthy
     build: 
       context: ./receive
-      target: dev
+      target: prod
     environment:
-      NODE_ENV: development
+      <<: *rabbitmq-variables
+      NODE_ENV: production
     ports:
       - "3000:3000"
-    volumes:
-      - ./receive/src:/usr/src/app/src:z
 
   store:
     container_name: store
@@ -59,15 +65,14 @@ services:
         condition: service_healthy
     build: 
       context: ./store
-      target: dev
+      target: prod
     environment:
-      NODE_ENV: development
-      MONGODB_USER: root
-      MONGODB_PASS: verysecurepassword123
+      <<: *rabbitmq-variables
+      NODE_ENV: production
+      MONGODB_USER: user # configurar usuario
+      MONGODB_PASS: pass # configurar senha
     ports:
       - "3001:3001"
-    volumes:
-      - ./store/src:/usr/src/app/src:z
 
 volumes:
   mongo-data:

@@ -1,0 +1,1 @@
+export const CSV_PROCESS_SERVICE_RABBITMQ = 'rabbitMQ_csv_process_service';

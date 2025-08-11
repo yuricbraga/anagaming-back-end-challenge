@@ -23,8 +23,7 @@
       "@common/*": ["src/common/*"],
       "@shared/*": ["src/shared/*"],
       "@infrastructure/*": ["src/infrastructure/*"]
-    },
-    "types": ["node"]
+    }
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -7,7 +7,7 @@
   "trailingComma": "all",
   "bracketSpacing": true,
   "arrowParens": "avoid",
-  "printWidth": 200,
+  "printWidth": 80,
   "endOfLine": "auto",
   "embeddedLanguageFormatting": "auto",
   "proseWrap": "always",

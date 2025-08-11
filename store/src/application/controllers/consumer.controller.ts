@@ -1,3 +1,5 @@
+import { PersonsService } from '@application/services/persons.service';
+import { StateCountsService } from '@application/services/stateCounts.schema';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
@@ -5,8 +7,13 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 export class ConsumerController {
   private readonly logger = new Logger(ConsumerController.name);
 
-  @MessagePattern('Csv_Process')
-  async receiveFromQueue(@Payload() payload: any): Promise<string> {
+  constructor(
+    private readonly personService: PersonsService,
+    private readonly stateCountService: StateCountsService,
+  ) {}
+
+  @MessagePattern('person-batch')
+  async receiveFromQueue(@Payload() payload: any): Promise<any> {
     if (!Array.isArray(payload)) {
       this.logger.error('Invalid payload: expected an array.');
       throw new Error('Invalid payload: expected an array.');
@@ -14,9 +21,14 @@ export class ConsumerController {
 
     const batch = payload.slice(0, 1000);
 
-    this.logger.log(`Processing batch of size ${batch.length}`);
-    this.logger.debug(`Batch content: ${JSON.stringify(batch, null, 2)}`);
+    const result = await this.personService.createMany(batch);
 
-    return `Processed batch of size ${batch.length}`;
+    this.logger.log({
+      result: `${result?.insertedDocs?.length ?? 0} successful insertions`,
+      errors: `${result?.writeErrors?.length ?? 0} insertions failed`,
+    });
+
+    const stateCount = await this.personService.countByState();
+    await this.stateCountService.upsertMany(stateCount);
   }
 }
