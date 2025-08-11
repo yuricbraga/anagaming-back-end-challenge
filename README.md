@@ -20,6 +20,15 @@ Comandos relevantes:
   docker compose -f docker-compose-prod.yaml up --build
   ```
 
+## Como utilizar
+
+Dado que a aplicação é voltada para back-end, não há uma interface de usuário que possa ser utilizada afim de demonstrar funcionamento. A sugestão do autor é que seja usado o Postman para testar a rota da aplicação `receive` e para averiguar o estado do banco de dados o MongoDB Compass. Segue abaixo um snipped em curl que pode ser importado no Postman.
+
+```bash
+curl --location 'localhost:3000/uploadcsv' \
+--form 'file=@"caminho do arquivo csv"'
+```
+
 ## Agradecimentos finais
 
 Obrigado à Ana Gaming pela oportunidade. Não sou um profissional de infraestrutura e poder configurar ambientes usando Docker foi um aprendizado e tanto.
